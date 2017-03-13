@@ -1,0 +1,119 @@
+/* Die Datei ist nicht vorhanden und wird vom LocalFilesEditor erstellt. */
+
+/* buttons for navigation please as well - borrowed from ad-gallery */
+.prevImage:hover, #linkPrev:hover {
+  cursor: url(icon/ad_prev.png) 40 40, auto;
+}
+.nextImage:hover, #linkNext:hover {
+  cursor: url(icon/ad_next.png) 40 40, auto;
+}
+.upImage:hover, #linkUp:hover {
+  cursor: url(icon/ad_up.png), auto;
+}
+
+/* thumbnails below pictures in one row please */
+.pictureThumbnails {
+  height: 180px;
+  white-space: nowrap;
+  overflow: auto;
+}
+/* some indication for hover is nice as well - with fading effect :-) */
+.pictureThumbnails .thumbnail {
+  opacity: 0.7;
+  transition: opacity 0.3s linear;
+}
+.pictureThumbnails .thumbnail:hover {
+  opacity: 1.0;
+  transition: opacity 0.3s linear;
+}
+.pictureThumbnails .thumbnails .wrap1 {
+  margin: 0;
+  padding: 0;
+}
+/* comment above image and other sizing things */
+p.imageComment {
+  box-sizing: border-box;
+  margin: 0 auto;
+  border: 0px;
+  padding: 3px;
+  background-image: url(icon/opa75.png);
+  background-color: transparent;
+  color: black;
+  font-weight: bold;
+  position: relative;
+}
+#imageInfos {
+  overflow-y: hidden;
+}
+#theImageAndInfos, #theImage {
+  overflow-y: hidden;
+}
+.wrapper {
+  padding-bottom: 5px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 10px;
+}
+
+/* hide map on picture page on load */
+#map.hidden {
+  display: none;
+}
+
+/* shrink menues a bit */
+#menubar dd {
+  padding-bottom: 0px;
+}
+
+/* customize slick slider */
+/* 1. arrows over images - https://stackoverflow.com/questions/33149677/move-slick-navigation-arrows-inside-the-slides */
+.slick-prev,
+.slick-next
+{
+  width: 40px;
+  height: 40px;
+}
+.slick-prev:before,
+.slick-next:before
+{
+  font-size: 40px;
+  opacity: .90;
+}
+.slick-prev
+{
+  left: 25px;
+  z-index: 1;
+}
+[dir='rtl'] .slick-prev
+{
+  right: 25px;
+  left: auto;
+}
+
+.slick-next
+{
+  right: 25px;
+  z-index: 1;
+}
+[dir='rtl'] .slick-next
+{
+  right: auto;
+  left: 25px;
+}
+/* 2. some space between images - https://github.com/kenwheeler/slick/issues/582 */
+/* the slides */
+.slick-slide {
+    margin: 0 5px;
+}
+/* the parent */
+.slick-list {
+    margin: 0 -5px;
+}
+.slick-slider
+{
+  overflow: hidden;
+}
+.slick-list
+{
+  overflow: none;
+}
