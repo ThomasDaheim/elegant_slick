@@ -322,7 +322,7 @@ function elegant_slick_add_map_to_pic()
   global $template, $conf, $page;
   
   // check if openstreetmap is installed & enabled for category page
-  if ($conf['osm_conf']['category_description']['enabled'])
+  if (isset($conf['osm_conf']) && isset($conf['osm_conf']['category_description']) && $conf['osm_conf']['category_description']['enabled'])
   {
     include_once(OSM_PATH.'category.inc.php');
     
