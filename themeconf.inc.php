@@ -72,22 +72,27 @@ function elegant_slick_pano_max_size($content, $element_info)
 		return $content;
 	}
 
-    if ($height > 0 && $width/$height > 3.5 && isset($template->get_template_vars('current')['selected_derivative']))
+	// TFE, 20180902: a pano is also everything with width > 1280...
+    if ((($height > 0 && $width/$height > 3.5) || ($width > 1280)) && isset($template->get_template_vars('current')['selected_derivative']))
     {
-      //print_r('panorama detected');
+      //print_r('panorama detected!');
       //print_r($element_info);
       
       // i) find out what derivative type we have and what max height value it has
       $derivative_type = $template->get_template_vars('current')['selected_derivative']->get_type();
       $ideal_height = ImageStdParams::get_by_type($derivative_type)->sizing->ideal_size[1];
+      //print_r(' ideal height: ');
+      //print_r($ideal_height);
             
-      // ii) find derivative with height <= $ideal_height
+      // ii) find largest derivative with height <= $ideal_height
       foreach($element_info['derivatives'] as $type => $derivative)
       {
         if ($type==IMG_SQUARE || $type==IMG_THUMB)
           continue;
         if (!array_key_exists($type, ImageStdParams::get_defined_type_map()))
           continue;
+		  //print_r(' checking derivative: ');
+		  //print_r($derivative->get_size()[1]);
         // check height against $ideal_height
         if ($derivative->get_size()[1] > $ideal_height)
           continue;
@@ -95,6 +100,8 @@ function elegant_slick_pano_max_size($content, $element_info)
         if (!isset($ideal_derivative) || $derivative->get_size()[1] > $ideal_derivative->get_size()[1])
           $ideal_derivative = $derivative;
       }
+	  //print_r(' ideal derivative: ');
+      //print_r($ideal_derivative->get_size()[1]);
           
       // now replace the link, the width & height and the usemap from the ideal derivative
       // src="_data/i/galleries/Lissabon 2016/img_5945_dpp_stitch-me.jpg" width="792" height="98" usemap="#mapmedium" 
@@ -193,19 +200,26 @@ No category page
 add_event_handler('loc_end_index_thumbnails', 'elegant_slick_skip_cat');
 function elegant_slick_skip_cat($tpl_thumbnails_var)
 {
-	//print_r('skip category');
+//	print_r('skip category');
 	global $page, $template;
 
 	// check, if we should do anything
-	if ( !isset($template->get_template_vars('elegant_slick')['p_no_cat_page']) or
+	// TFE, 20190804: check if $page or $template are set; if not we're e.g. showing recent pics...
+	if ( empty($page) or empty($template) or !isset($template->get_template_vars('elegant_slick')['p_no_cat_page']) or
 		$template->get_template_vars('elegant_slick')['p_no_cat_page'] == 'off')
 	{
+//		print_r('nothing todo');
 		return $tpl_thumbnails_var;
 	}
 
 	if (isset($page['category']))
 	{
 		redirect($tpl_thumbnails_var[0]['URL']);
+	}
+	else
+	{
+		// not sure if we can really end up here...
+		return $tpl_thumbnails_var;
 	}
 }
 
