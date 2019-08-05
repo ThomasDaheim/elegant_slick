@@ -197,30 +197,27 @@ function elegant_slick_pano_max_size($content, $element_info)
 /*
 No category page
 */
-add_event_handler('loc_end_index_thumbnails', 'elegant_slick_skip_cat');
+add_event_handler('loc_end_index_thumbnails', 'elegant_slick_skip_cat', 55);
 function elegant_slick_skip_cat($tpl_thumbnails_var)
 {
 //	print_r('skip category');
 	global $page, $template;
 
 	// check, if we should do anything
-	// TFE, 20190804: check if $page or $template are set; if not we're e.g. showing recent pics...
-	if ( empty($page) or empty($template) or !isset($template->get_template_vars('elegant_slick')['p_no_cat_page']) or
+	if (// TFE, 20190804: check if $page or $template are set; if not we're e.g. showing recent pics...
+		empty($page) or empty($template) or 
+		// is it something else than the category page
+		!isset($page['category']) or
+		// is the template flag set to not suppress the category page?
+		!isset($template->get_template_vars('elegant_slick')['p_no_cat_page']) or
 		$template->get_template_vars('elegant_slick')['p_no_cat_page'] == 'off')
 	{
+		// lets get out of here - nothing for us to do
 //		print_r('nothing todo');
 		return $tpl_thumbnails_var;
 	}
 
-	if (isset($page['category']))
-	{
-		redirect($tpl_thumbnails_var[0]['URL']);
-	}
-	else
-	{
-		// not sure if we can really end up here...
-		return $tpl_thumbnails_var;
-	}
+	redirect($tpl_thumbnails_var[0]['URL']);
 }
 
 /*
