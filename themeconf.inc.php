@@ -35,8 +35,9 @@ function elegant_slick_pano_max_size($content, $element_info)
   global $conf, $page, $template;
   
   if ( !empty($content) )
-  {// we have the image - now lets check & replace if required
-    //print_r($element_info);
+  {
+	// we have the image - now lets check & replace if required
+    //print_r($template->get_template_vars('current')['unique_derivatives']);
     
     $width = $element_info['width'];
     $height = $element_info['height'];
@@ -44,11 +45,12 @@ function elegant_slick_pano_max_size($content, $element_info)
     // store values for later use...
     if (isset($template->get_template_vars('current')['selected_derivative']))
     {
-      $real_image_size = $template->get_template_vars('current')['selected_derivative']->get_size();
+		$real_image_size = $template->get_template_vars('current')['selected_derivative']->get_size();
+		// print_r('from template: '.$real_image_size[1].'; ');
     }
     else
     {
-      // the hard way... no picture set, e.g. a video
+      // the hard way... no picture set, e.g. a video or gpx
       if (isset($_COOKIE['picture_deriv']))
       {
         if ( array_key_exists($_COOKIE['picture_deriv'], ImageStdParams::get_defined_type_map()) )
@@ -60,6 +62,7 @@ function elegant_slick_pano_max_size($content, $element_info)
 
       // set real size from the dimensions of this derivative - can't think of anything better to do
       $real_image_size = ImageStdParams::get_by_type($derivative_type)->sizing->ideal_size;
+		//print_r('from cookie: '.$real_image_size[1].'; ');
     }
   
     // store real width for further use
@@ -77,7 +80,7 @@ function elegant_slick_pano_max_size($content, $element_info)
     {
       //print_r('panorama detected!');
       //print_r($element_info);
-      
+
       // i) find out what derivative type we have and what max height value it has
       $derivative_type = $template->get_template_vars('current')['selected_derivative']->get_type();
       $ideal_height = ImageStdParams::get_by_type($derivative_type)->sizing->ideal_size[1];
@@ -100,8 +103,14 @@ function elegant_slick_pano_max_size($content, $element_info)
         if (!isset($ideal_derivative) || $derivative->get_size()[1] > $ideal_derivative->get_size()[1])
           $ideal_derivative = $derivative;
       }
-	  //print_r(' ideal derivative: ');
-      //print_r($ideal_derivative->get_size()[1]);
+	  //echo ' ideal derivative: ';
+      //echo print_r($ideal_derivative->get_size()[0]).PHP_EOL;
+      //echo print_r($ideal_derivative->get_size()[1]).PHP_EOL;
+
+      $real_image_size = $ideal_derivative->get_size();
+	  
+	  // store real width for further use
+	  $template->assign('real_image_size', $real_image_size);
           
       // now replace the link, the width & height and the usemap from the ideal derivative
       // src="_data/i/galleries/Lissabon 2016/img_5945_dpp_stitch-me.jpg" width="792" height="98" usemap="#mapmedium" 
@@ -122,57 +131,71 @@ function elegant_slick_pano_max_size($content, $element_info)
       $search = '/height=\".*?\"/';
       $content = preg_replace($search, $replacement, $content);
       
-      // 4: usemap
-      $replacement = 'usemap="#map'.$ideal_derivative->get_type().'"';
-      $search = '/usemap=\".*?\"/';
-      $content = preg_replace($search, $replacement, $content);
-	  
 	  // 5: switch "data-class" from current derivative to new one
 	  // 5.1: get current and new "map" definition
-	  $current_search = '/<map name=\"map'.$derivative_type.'\">.*?map>/';
-      //print_r($current_search);
+	  $current_search = '/<map name=\"map'.$derivative_type.'\">/';
+      //echo 'current_search: ';
+      //echo print_r($current_search).PHP_EOL;
 	  if (preg_match($current_search, $content, $current_match_array))
 	  {
 		  $current_match = $current_match_array[0];
-		  //print_r($current_match);
-		  $ideal_search = '/<map name=\"map'.$ideal_derivative->get_type().'\">.*?map>/';
-		  //print_r($ideal_search);
+		  //echo 'current_match: ';
+		  //echo print_r($current_match).PHP_EOL;
+		  $ideal_search = '/<map name=\"map'.$ideal_derivative->get_type().'\">/';
+		  //echo 'ideal_search: ';
+		  //echo print_r($ideal_search).PHP_EOL;
 		  if (preg_match($ideal_search, $content, $ideal_match_array))
 		  {
+			  // 4: usemap
+			  // TFE, 20201106: replace only if new map is available
+			  $replacement = 'usemap="#map'.$ideal_derivative->get_type().'"';
+			  $search = '/usemap=\".*?\"/';
+			  $content = preg_replace($search, $replacement, $content);
+
 			  $ideal_match = $ideal_match_array[0];
-			  //print_r($ideal_match);
+			  //echo 'ideal_match: ';
+			  //echo print_r($ideal_match).PHP_EOL;
+
 			  // 5.2 check for prevImage, upImage, nextImage data-class entries and shift them each from curent to new "map" definition
 			  // 5.2.a replace 'area data-class="prevImage"' with 'area' and so on AND check if something was replaced
 			  $replacement = 'area';
 			  $search = 'area data-class="prevImage"';
 			  $current_match = str_replace($search, $replacement, $current_match, $prevCount);
+			  //echo 'prevCount: ';
+			  //echo print_r($prevCount).PHP_EOL;
+			  
 			  $replacement = 'area';
 			  $search = 'area data-class="upImage"';
 			  $current_match = str_replace($search, $replacement, $current_match, $upCount);
+			  //echo 'upCount: ';
+			  //echo print_r($upCount).PHP_EOL;
+			  
 			  $replacement = 'area';
 			  $search = 'area data-class="nextImage"';
 			  $current_match = str_replace($search, $replacement, $current_match, $nextCount);
-
+			  //echo 'nextCount: ';
+			  //echo print_r($nextCount).PHP_EOL;
+			  
 			  // 5.2.b now add 'data-class="prevImage"' and so on ONLY if they have been replaced previously
 			  if ($prevCount == 1)
 			  {
 				  $replacement = 'area data-class="prevImage" shape';
 				  // always find the next "area" without a data-class after it :-)
-				  $search = 'area  shape';
+				  $search = 'area shape';
 				  $startPos = strpos($ideal_match, $search);
 				  $ideal_match = substr_replace($ideal_match, $replacement, $startPos, strlen($search));
 			  }
 			  if ($upCount == 1)
 			  {
 				  $replacement = 'area data-class="upImage" shape';
-				  $search = 'area  shape';
+				  $search = 'area shape';
 				  $startPos = strpos($ideal_match, $search);
 				  $ideal_match = substr_replace($ideal_match, $replacement, $startPos, strlen($search));
 			  }
 			  if ($nextCount == 1)
 			  {
 				  $replacement = 'area data-class="nextImage" shape';
-				  $search = 'area  shape';
+				  $search = 'area shape';
 				  $startPos = strpos($ideal_match, $search);
 				  $ideal_match = substr_replace($ideal_match, $replacement, $startPos, strlen($search));
 			  }
@@ -181,15 +204,88 @@ function elegant_slick_pano_max_size($content, $element_info)
 			  $content = preg_replace($current_search, $current_match, $content);
 			  $content = preg_replace($ideal_search, $ideal_match, $content);
 		  }
+		  else 
+		  {
+			  // TFE, 20201106: update current map entry with new image size - everything between "coords" must be replaced
+			  // <area data-class="prevImage" shape=rect coords="0,0,198,347" href="picture?/14216/category/1050-florenz" title="Previous : PANO 20200913 134406.vr" alt="PANO 20200913 134406.vr">
+			  // <area data-class="nextImage" shape=rect coords="595,0,792,347" href="picture?/14180/category/1050-florenz" title="Next : IMG 3804 EOS matched enfused" alt="IMG 3804 EOS matched enfused">
+			  $search = '<area data-class="prevImage" shape=rect coords="';
+			  $startPos = strpos($content, $search);
+			  if ($startPos !== false)
+			  {
+				  $endPos = strpos($content, '"', $startPos + strlen($search));
+				  // replace with 0,0,imagewidth/4,imageheight
+				  $newCoords = '0,0,'.intval($real_image_size[0]/8).','.$real_image_size[1];
+				  //echo 'newCoords: ';
+				  //echo print_r($newCoords).PHP_EOL;
+				  $content = substr($content, 0, $startPos + strlen($search)).$newCoords.substr($content, $endPos);
+			  }
+			  $search = '<area data-class="nextImage" shape=rect coords="';
+			  $startPos = strpos($content, $search);
+			  if ($startPos !== false)
+			  {
+				  $endPos = strpos($content, '"', $startPos + strlen($search));
+				  // replace with imagewidth/1.33),0,imagewidth,imageheight
+				  $newCoords = intval($real_image_size[0]*7/8).',0,'.$real_image_size[0].','.$real_image_size[1];
+				  //echo 'newCoords: ';
+				  //echo print_r($newCoords).PHP_EOL;
+				  $content = substr($content, 0, $startPos + strlen($search)).$newCoords.substr($content, $endPos);
+			  }
+		  }
 	  }
       
       //print_r($content);
-      $real_image_size = $ideal_derivative->get_size();
     }
+	
+	// determine ideal height and set div for image content & image info to it
+	// TFE, 20210621: in case of gpx, kml is not helpful, since $element_info['derivatives'][XYZ] is always "Original"...
+	// and this will be set in case of Automatic Size plugin running before us...
+	$was_automatic_resize_fup = false;
+	// TFE, 20210620: check against ignored file types
+	if (isset($conf['automatic_size_ignore_file_types']) && $conf['automatic_size_ignore_file_types']) {
+	  if (isset($element_info['file']) && in_array(get_extension($element_info['file']), $conf['automatic_size_ignore_file_type_list'])) {
+		// we had automatic resize messing things up for this file type...
+		$was_automatic_resize_fup = true;
+	  }
+	}
+
+	if (isset($template->get_template_vars('current')['selected_derivative']) && !$was_automatic_resize_fup)
+	{
+		$derivative_type = $template->get_template_vars('current')['selected_derivative']->get_type();
+	}
+	else
+	{
+		// the hard way... no picture set, e.g. a video
+		if (isset($_COOKIE['picture_deriv']))
+		{
+		  if ( array_key_exists($_COOKIE['picture_deriv'], ImageStdParams::get_defined_type_map()) )
+		  {
+			pwg_set_session_var('picture_deriv', $_COOKIE['picture_deriv']);
+		  }
+		}
+		$derivative_type = pwg_get_session_var('picture_deriv', $conf['derivative_default_size']);
+	}
+
+	// TFE, 20210621: in case of Automatic Size
+	if (strcmp($derivative_type, 'Original') == 0) {
+		// no derivative_type we can use
+		if (isset($template->get_template_vars('current')['selected_derivative']))
+		{
+		  // we have at least the size of the image
+		  $max_image_size = $template->get_template_vars('current')['selected_derivative']->get_size();
+		}
+		else
+		{
+		  // out of ideas - 'Original' and no selected derivative...
+		  $max_image_size = ImageStdParams::get_by_type('normal')->sizing->ideal_size;
+		}
+	}
+	else
+	{
+		$max_image_size = ImageStdParams::get_by_type($derivative_type)->sizing->ideal_size;
+	}
+	$template->assign('max_image_size', $max_image_size);
   
-    // store real width for further use
-    $template->assign('real_image_size', $real_image_size);
-      
     return $content;
   }
 }
@@ -228,44 +324,7 @@ function elegant_slick_add_thumbs_to_pic()
   // stuff borrowed from category_default.inc.php
   // to retrieve template data required for thumbnails
   
-  global $template, $conf, $user, $page;
-  
-  // determine ideal height and set div for image content & image info to it
-  if (isset($template->get_template_vars('current')['selected_derivative']))
-  {
-    $derivative_type = $template->get_template_vars('current')['selected_derivative']->get_type();
-  }
-  else
-  {
-    // the hard way... no picture set, e.g. a video
-    if (isset($_COOKIE['picture_deriv']))
-    {
-      if ( array_key_exists($_COOKIE['picture_deriv'], ImageStdParams::get_defined_type_map()) )
-      {
-        pwg_set_session_var('picture_deriv', $_COOKIE['picture_deriv']);
-      }
-    }
-    $derivative_type = pwg_get_session_var('picture_deriv', $conf['derivative_default_size']);
-  }
-      
-  if (strcmp($derivative_type, 'Original') == 0) {
-    // no derivative_type we can use
-    if (isset($template->get_template_vars('current')['selected_derivative']))
-    {
-      // we have at least the size of the image
-      $max_image_size = $template->get_template_vars('current')['selected_derivative']->get_size();
-    }
-    else
-    {
-      // out of ideas - 'Original' and no selected derivative...
-      $max_image_size = ImageStdParams::get_by_type('normal')->sizing->ideal_size;
-    }
-  }
-  else
-  {
-    $max_image_size = ImageStdParams::get_by_type($derivative_type)->sizing->ideal_size;
-  }
-  $template->assign('max_image_size', $max_image_size);
+  global $template, $conf, $page;
   
   // select all pictures for this category
   $query = '
