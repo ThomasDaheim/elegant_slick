@@ -25,12 +25,21 @@
 #theImage, .wrapper {ldelim}
   height: {$max_image_size[1]}px;
 }
+.wrapper {ldelim}
+  padding-top: 0px;
+}
 #imageInfos {ldelim}
   max-height: {$max_image_size[1]-50}px;
 }
 p.imageComment {ldelim}
   width: {$real_image_size[0]}px;
-  bottom: {$real_image_size[1]+3}px;
+  {* bottom: {$max_image_size[1]+3}px; *}
+  position:absolute;
+  vertical-align: top;
+  top: 0px;
+  left: 50%;
+  margin-left: -{$real_image_size[0]/2}px;
+  margin-top: 10px;
 }
 {/html_style}
 

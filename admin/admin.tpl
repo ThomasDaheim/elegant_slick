@@ -22,7 +22,7 @@ jQuery(document).ready(function(){
         <input type="radio" id="p_no_cat_page_off" name="p_no_cat_page" value="off" {if $options.p_no_cat_page=="off"}checked="checked"{/if}><label for="p_no_cat_page_off">{'No'|@translate}</label>
       </li>
       <li class="radio" >
-        <label for="p_max_pano"><span class="property">{'Maximize panorama height'|@translate}</span>&nbsp;</label>
+        <label for="p_max_pano"><span class="property">{'Maximize panorama height (not working well with autosize-plugin)'|@translate}</span>&nbsp;</label>
         <input type="radio" id="p_max_pano_on" name="p_max_pano" value="on" {if $options.p_max_pano=="on"}checked="checked"{/if}><label for="p_max_pano_on">{'Yes'|@translate}</label>
         <input type="radio" id="p_max_pano_off" name="p_max_pano" value="off" {if $options.p_max_pano=="off"}checked="checked"{/if}><label for="p_max_pano_off">{'No'|@translate}</label>
       </li>
