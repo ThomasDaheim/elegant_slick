@@ -42,10 +42,10 @@ p.imageComment {
   font-weight: bold;
   position: relative;
 }
-#imageInfos {
-  overflow-y: hidden;
+#theImageAndInfos {
+  overflow-x: hidden;
 }
-#theImageAndInfos, #theImage {
+#theImageAndInfos, #theImage, #imageInfos {
   overflow-y: hidden;
 }
 .wrapper {
